@@ -16,6 +16,16 @@ ETCDCTL_API=3 etcdctl put registry/greeter/127.0.0.1:50052 '{"Addr":"127.0.0.1:5
 
 You can use grpc balancer to determine which service instance will be invoked.
 
+### register the resolver to grpc resolver Builder
+
+```go
+import(
+    _ "github.com/geniuscirno/grpcresolver"
+)
+```
+
+### call grpc service
+
 ```go
 conn, err := grpc.Dial("etcd://127.0.0.1:2379/registry/greeter/",grpc.WithInsecure())
 if err != nil{
