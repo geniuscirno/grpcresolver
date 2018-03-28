@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/geniuscirno/smg/registrator"
-
 	"google.golang.org/grpc/resolver"
 
 	etcd "github.com/coreos/etcd/clientv3"
 )
+
+type ServiceDesc struct {
+	Addr string
+	Meta interface{}
+}
 
 type etcdResolverBuilder struct{}
 
@@ -61,12 +64,12 @@ func (r *etcdResolver) watcher() {
 			if err != nil {
 				return
 			}
-			var ep registrator.Endpoint
+			var sd ServiceDesc
 			for _, kv := range resp.Kvs {
-				if err := json.Unmarshal(kv.Value, &ep); err != nil {
+				if err := json.Unmarshal(kv.Value, &sd); err != nil {
 					continue
 				}
-				r.addrs = append(r.addrs, resolver.Address{Addr: ep.Addr})
+				r.addrs = append(r.addrs, resolver.Address{Addr: sd.Addr})
 			}
 
 			r.wc = r.c.Watch(r.ctx, r.target, etcd.WithPrevKV(), etcd.WithPrefix())
@@ -76,20 +79,20 @@ func (r *etcdResolver) watcher() {
 				return
 			}
 
-			var ep registrator.Endpoint
+			var sd ServiceDesc
 			for _, e := range wc.Events {
 				switch e.Type {
 				case etcd.EventTypePut:
-					if err := json.Unmarshal(e.Kv.Value, &ep); err != nil {
+					if err := json.Unmarshal(e.Kv.Value, &sd); err != nil {
 						continue
 					}
-					r.addrs = append(r.addrs, resolver.Address{Addr: ep.Addr})
+					r.addrs = append(r.addrs, resolver.Address{Addr: sd.Addr})
 				case etcd.EventTypeDelete:
-					if err := json.Unmarshal(e.PrevKv.Value, &ep); err != nil {
+					if err := json.Unmarshal(e.PrevKv.Value, &sd); err != nil {
 						continue
 					}
 					for i, v := range r.addrs {
-						if v.Addr == ep.Addr {
+						if v.Addr == sd.Addr {
 							r.addrs = append(r.addrs[:i], r.addrs[i+1:]...)
 							break
 						}
