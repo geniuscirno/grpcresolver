@@ -14,13 +14,13 @@ type ServiceDesc struct {
 	Meta interface{}
 }
 
-type etcdResolverBuilder struct{}
+type builder struct{}
 
 func init() {
-	resolver.Register(&etcdResolverBuilder{})
+	resolver.Register(&builder{})
 }
 
-func (*etcdResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOption) (resolver.Resolver, error) {
+func (*builder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOption) (resolver.Resolver, error) {
 	cli, err := etcd.NewFromURL("http://" + target.Authority)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (*etcdResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn
 	return r, nil
 }
 
-func (*etcdResolverBuilder) Scheme() string {
+func (*builder) Scheme() string {
 	return "etcd"
 }
 
