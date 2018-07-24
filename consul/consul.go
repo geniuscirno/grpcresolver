@@ -71,7 +71,7 @@ func (r *consulResolver) watcher() {
 			continue
 		}
 
-		r.addrs = make([]resolver.Address, len(r.addrs))
+		r.addrs = make([]resolver.Address, 0, len(r.addrs))
 		for _, kv := range kvs {
 			err = json.Unmarshal(kv.Value, &sd)
 			if err != nil {
